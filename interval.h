@@ -17,9 +17,9 @@ class interval{
         return x;
     }
 
-        static const interval empty, universe;
+        
 };
-const interval interval::empty = interval(+infinity, -infinity);
-const interval interval::universe = interval(-infinity, +infinity);
+inline const interval empty{+infinity, -infinity};
+inline const interval universe{-infinity, +infinity};
 
 #endif

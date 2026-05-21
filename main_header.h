@@ -6,6 +6,7 @@
 #include <limits>
 #include <cstdlib>
 #include <memory>
+#include <utility>
 
 // C++ Std Usings
 
@@ -13,9 +14,11 @@ using std::make_shared;
 using std::shared_ptr;
 
 // Constants
-
 const double infinity = std::numeric_limits<double>::infinity();
 const double pi = 3.1415926535897932385;
+
+inline constexpr double maxdouble = std::numeric_limits<double>::max();
+inline constexpr double mindouble =  std::numeric_limits<double>::lowest();  // = -1.79769e+308
 
 // Utility Functions
 

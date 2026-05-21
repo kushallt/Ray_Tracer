@@ -78,6 +78,9 @@ inline vec3 operator*(const vec3& v, double t){
 inline vec3 operator/(const vec3& v, double t){
     return v * (1/t);
 }
+inline bool operator==(const vec3& u, const vec3& v){
+    return ((u.x()==v.x()) && (u.y() == v.y()) && (u.z() == v.z()));
+}
 inline vec3 operator*(const vec3& v, const vec3& u){
     return vec3(v.e[0]*u.e[0], v.e[1]*u.e[1], v.e[2]*u.e[2]);
 }

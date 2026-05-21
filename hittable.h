@@ -1,5 +1,6 @@
 #ifndef HITTABLE_H
 #define HITTABLE_H
+#include "bounds.h"
 
 class material;
 class hit_record{
@@ -19,6 +20,8 @@ class hittable{
     public:
         virtual ~hittable() = default;
         virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const=0;
+        virtual bool hitBVH(const ray& r, interval ray_t, hit_record& rec) const=0;
+        virtual Bounds3f calculateBounds() = 0;
         
 };
 
