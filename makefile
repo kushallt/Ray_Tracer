@@ -1,28 +1,41 @@
 CXX      := g++
-CXXFLAGS := -std=c++17 -O2 -Wall
+CXXFLAGS := -std=c++17 -O2 -Wall -Wextra -Iinclude
+LDFLAGS  :=
 
-# Source files
-SRCS := main.cpp \
-        bvh_accelerator.cpp \
-        BVHFlatten.cpp \
-        bvhrecursivebuild.cpp \
-        bvhsah.cpp
+# Directories
+SRC_DIR   := src
+BUILD_DIR := build
+OUT_DIR   := output
 
-OBJS := $(SRCS:.cpp=.o)
-TARGET := main.exe
+TARGET := $(OUT_DIR)/main
 
-.PHONY: all clean run
+# Auto-discover all .cpp files
+SRCS := $(wildcard $(SRC_DIR)/*.cpp)
+OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRCS))
 
-all: $(TARGET)
+# ── Default target ────────────────────────────────────────────────
+.PHONY: all clean run dirs
 
+all: dirs $(TARGET)
+
+# Link
 $(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) $^ -o $@ $(LDFLAGS)
+	@echo "Built: $@"
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+# Compile each .cpp → build/*.o
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-run: $(TARGET)
-	./$(TARGET)
+# Create directories if missing
+dirs:
+	@mkdir -p $(BUILD_DIR) $(OUT_DIR)
 
+# ── Run (pipes PPM output to file) ───────────────────────────────
+run: all
+	$(TARGET) > $(OUT_DIR)/image.ppm
+	@echo "Rendered: $(OUT_DIR)/image.ppm"
+
+# ── Clean ─────────────────────────────────────────────────────────
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -rf $(BUILD_DIR) $(OUT_DIR)

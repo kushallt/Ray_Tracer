@@ -3,7 +3,7 @@
 
 #include "main_header.h"
 #include "hittable.h"
-
+#include "threadpool.h"
 class camera
 {
 public:
@@ -11,6 +11,7 @@ public:
     int image_width = 100;
     int samples_per_pixel = 10;
     int max_depth = 10;
+    int tileDimension = 32;
     double vfov = 90;
     point3 lookfrom = point3(0, 0, 0); // Point camera is looking from
     point3 lookat = point3(0, 0, -1);  // Point camera is looking at
@@ -20,6 +21,36 @@ public:
         initialize();
         std::cout << "P3\n"
                   << image_width << ' ' << image_height << "\n255\n";
+        #define VERSION 1
+        #if VERSION == 1
+        writebuffer.resize(image_width * image_height);
+        ThreadPool pool;
+        std::vector<std::future<void>> futures;
+        for (int i = 0; i < image_height; i += tileDimension)
+        {
+            for (int j = 0; j < image_width; j += tileDimension)
+            {
+                futures.push_back(pool.enqueue([this, i, j, &world]
+                                               { fillTile(i, j, world); }));
+            }
+        }
+        int ind=0;
+        for (auto &f : futures)
+        {
+            f.get();
+            ind++;
+        }
+        for (int j = 0; j < image_height; j++)
+        {
+            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+            const color* row = &writebuffer[j * image_width];
+            for (int i = 0; i < image_width; i++)
+            {
+                write_color(std::cout, row[i]);
+            }
+        }
+
+        #else if VERSION == 2
         for (int j = 0; j < image_height; j++)
         {
             std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
@@ -34,6 +65,9 @@ public:
                 write_color(std::cout, pixel_samples_scale * pixel_color);
             }
         }
+
+        #endif
+        
     }
 
 private:
@@ -43,6 +77,7 @@ private:
     point3 pixel100_loc;
     vec3 pixel_delta_u;
     vec3 pixel_delta_v;
+    std::vector<color> writebuffer;
     void initialize()
     {
         image_height = int(image_width / aspect_ratio);
@@ -79,7 +114,7 @@ private:
         {
             return color(0, 0, 0);
         }
-        if (world.hit(r, interval(0.001, infinity), rec))
+        if (world.hitBVH(r, interval(0.001, infinity), rec))
         {
             ray scattered;
             color attenuation;
@@ -90,6 +125,25 @@ private:
         vec3 unit_direction = unit_vector(r.direction());
         auto a = 0.5 * (unit_direction.y() + 1.0);
         return (1.0 - a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+    }
+    void fillTile(int i, int j, const hittable &world)
+    {
+        int maxrow = std::min(image_height, i + tileDimension);
+        int maxcol = std::min(image_width, j + tileDimension);
+        for (int a = i; a < maxrow; a++)
+        {
+            for (int b = j; b < maxcol; b++)
+            {
+                color pixel_color(0, 0, 0);
+                for (int sample = 0; sample < samples_per_pixel; sample++)
+                {
+                    ray r = get_ray(b, a);
+                    pixel_color += ray_color(r, max_depth, world);
+                }
+                pixel_color = pixel_samples_scale * pixel_color;
+                writebuffer[a * image_width + b] = pixel_color;
+            }
+        }
     }
     ray get_ray(int i, int j) const
     {

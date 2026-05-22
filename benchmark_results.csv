@@ -1,16 +1,10 @@
-28.180148,1
-29.926757,1
-32.881104,
-1.345258,1
-24.630821,1
-24.646793,1
-1.383993,1
-24.976796,1
-1.331465,1
-1.576901,1
-1.395087,1
-1.438463,1
-6.565729,1
-101.485299,1
-6.590774,1
-235.657516,1
+width-300
+6.590774,1 bvh
+235.657516,1 naive
+37.175503,1 multithreading without bvh with 16x16 tiles
+3.212298,1  multithreading + bvh with 16x16 tiles
+
+width-1200
+51.091649,1 multithreading + bvh with 16x16 tiles
+101.485299,1 bvh
+50.058568,1 multithreading + bvh with 32x32 tiles
